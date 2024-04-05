@@ -13,9 +13,7 @@ The ePaper Display Controller is a comprehensive solution for controlling a 1.54
 - [7. API Endpoints](#7-api-endpoints)
 - [8. Usage](#8-usage)
 - [9. Sample Outputs](#9-sample-outputs)
-- [10. Troubleshooting](#10-troubleshooting)
-- [11. Contributing](#11-contributing)
-- [12. License](#12-license)
+
 
 ## 1. Features
 
@@ -85,4 +83,52 @@ The system provides the following endpoints:
 - `/displayText`: Displays the provided text on the e-paper.
 - `/cross`: Displays a cross pattern on the e-paper.
 - `/upload`: Handles file uploads to the ESP32 file system.
+- `/process-image`: Convert any arbitrary size or tpye of image to bin format and triggers displayPicture() function inside the ESP32.
 - `/list`: Lists the files stored on the ESP32.
+
+## 8. Usage
+
+After setting up the hardware and software as described in previous sections, you can interact with the ePaper Display Controller through a series of HTTP endpoints. Each endpoint performs a different function, such as displaying text or images, clearing the display, and managing files.
+
+Here are some examples of how to use `curl` to interact with the device:
+
+- **Clear the display**:
+  ```
+  curl -X GET http://<ESP32_IP>/clear
+  ```
+
+- **Display text**:
+  ```
+  curl -X POST -H "Content-Type: text/plain" -d "Hello, World!" http://<ESP32_IP>/displayText
+  ```
+
+- **Display cross pattern**:
+  ```
+  curl -X GET http://<ESP32_IP>/cross
+  ```
+
+- **Upload a file**:
+  ```
+  curl -X POST -F "file=@/path/to/image" http://<ESP32_IP>/process-image
+  ```
+
+- **List files**:
+  ```
+  curl -X GET http://<ESP32_IP>/list
+  ```
+
+Make sure to replace `<ESP32_IP>` with the actual IP address assigned to your ESP32 device. These commands can be run in any terminal that supports `curl` or integrated into any other HTTP client interface.
+
+
+## 9. Sample Outputs
+
+Below are examples of outputs that can be displayed on the e-paper screen using the provided endpoints:
+
+- **Clear Screen Output (`/clear` endpoint):** This command clears the display, resulting in a blank screen as seen in `/output_images/cleaned.jpeg`.
+- **Text Display Output (`/displayText` endpoint):** When a text display command is sent, the screen shows the text message. For example, "Hello World" is displayed in `/output_images/text.jpeg`.
+- **Image Display Output (using `/upload` endpoint):** A bitmap image can be displayed on the screen, as demonstrated by the detailed image in `/output_images/image.jpeg`.
+- **Cross Pattern Output (`/cross` endpoint):** The cross pattern, which is useful for testing the screen, is shown in `/output_images/cross.jpeg`.
+
+These images provide a visual confirmation of the successful operation of each endpoint.
+"""
+
