@@ -124,11 +124,17 @@ Make sure to replace `<ESP32_IP>` with the actual IP address assigned to your ES
 
 Below are examples of outputs that can be displayed on the e-paper screen using the provided endpoints:
 
-- **Clear Screen Output (`/clear` endpoint):** This command clears the display, resulting in a blank screen as seen in `/output_images/cleaned.jpeg`.
-- **Text Display Output (`/displayText` endpoint):** When a text display command is sent, the screen shows the text message. For example, "Hello World" is displayed in `/output_images/text.jpeg`.
-- **Image Display Output (using `/upload` endpoint):** A bitmap image can be displayed on the screen, as demonstrated by the detailed image in `/output_images/image.jpeg`.
-- **Cross Pattern Output (`/cross` endpoint):** The cross pattern, which is useful for testing the screen, is shown in `/output_images/cross.jpeg`.
+- **Clear Screen Output (`/clear` endpoint):** This command clears the display, resulting in a blank screen.
+  ![Clear Screen](output_images/cleaned.jpeg)
+
+- **Text Display Output (`/displayText` endpoint):** When a text display command is sent, the screen shows the text message. For example, "Hello World" is displayed.
+  ![Text Display](output_images/text.jpeg)
+
+- **Image Display Output (using `/upload` endpoint):** A bitmap image can be displayed on the screen, as demonstrated by the detailed image.
+  ![Image Display](output_images/image.jpeg)
+
+- **Cross Pattern Output (`/cross` endpoint):** The cross pattern, which is useful for testing the screen, is shown.
+  ![Cross Pattern](output_images/cross.jpeg)
 
 These images provide a visual confirmation of the successful operation of each endpoint.
 """
-
