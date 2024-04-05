@@ -59,6 +59,7 @@ To set up the ePaper Display Controller, follow these steps:
      ```
      pip install -r requirements.txt
      ```
+  - Run the `image_processing_server.py` file on your server. This server processes images into a binary format suitable for the e-paper display and triggers an endpoint to update the display. The Python script must be running continuously on the server as it listens for incoming image processing requests and serves the processed images to the ESP32 for display.
 
 ## 5. Hardware Setup
 
@@ -124,9 +125,6 @@ Make sure to replace `<ESP32_IP>` with the actual IP address assigned to your ES
 
 Below are examples of outputs that can be displayed on the e-paper screen using the provided endpoints:
 
-- **Clear Screen Output (`/clear` endpoint):** This command clears the display, resulting in a blank screen.
-  ![Clear Screen](output_images/cleaned.jpeg)
-
 - **Text Display Output (`/displayText` endpoint):** When a text display command is sent, the screen shows the text message. For example, "Hello World" is displayed.
   ![Text Display](output_images/text.jpeg)
 
@@ -136,3 +134,5 @@ Below are examples of outputs that can be displayed on the e-paper screen using 
 - **Cross Pattern Output (`/cross` endpoint):** The cross pattern, which is useful for testing the screen, is shown.
   ![Cross Pattern](output_images/cross.jpeg)
 
+- **Clear Screen Output (`/clear` endpoint):** This command clears the display, resulting in a blank screen.
+  ![Clear Screen](output_images/cleaned.jpeg)
