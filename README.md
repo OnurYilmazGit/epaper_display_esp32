@@ -136,4 +136,3 @@ Below are examples of outputs that can be displayed on the e-paper screen using 
 - **Cross Pattern Output (`/cross` endpoint):** The cross pattern, which is useful for testing the screen, is shown.
   ![Cross Pattern](output_images/cross.jpeg)
 
-""
