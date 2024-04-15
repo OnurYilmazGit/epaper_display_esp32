@@ -12,7 +12,6 @@ def convert_h_to_bin(input_file, output_file):
     with open(input_file, 'r') as file:
         content = file.read()
 
-    # Extract the array data
     array_data_str = content.split('{', 1)[1].split('}', 1)[0]
     array_data = [int(x, 16) for x in array_data_str.split(',') if x.strip().startswith('0X')]
 
@@ -20,7 +19,38 @@ def convert_h_to_bin(input_file, output_file):
     with open(output_file, 'wb') as bin_file:
         bin_file.write(bytearray(array_data))
 
-@app.route('/process-image', methods=['POST'])
+esp32_base_url = 'http://192.168.0.119'
+
+@app.route('/clear', methods=['GET'])
+def clear_display():
+    try:
+        response = requests.get('http://192.168.0.119/clear')
+        return jsonify({'status': 'Successs', 'message': 'Clear command sent to ESP32.'})
+    except requests.exceptions.RequestException as e:
+        return jsonify({'status': 'Error', 'message': str(e)}), 500
+
+@app.route('/cross', methods=['GET'])
+def epaper_cross():
+    response = requests.get(f'{esp32_base_url}/cross')
+    return jsonify({'status': 'cross called', 'esp32_response': response.text}), 200
+
+@app.route('/displayText', methods=['POST'])
+def send_text_to_display():
+    text_content = request.json.get('text')
+    if not text_content:
+        return jsonify({'error': 'No text provided'}), 400
+
+    # Prepare the form data payload for the ESP32
+    payload = {'plain': text_content}
+
+    try:
+        response = requests.post(f'{esp32_base_url}/displayText', data=payload)
+        return jsonify({'status': 'Sent to ESP32', 'ESP32_response': response.text}), response.status_code
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': 'Failed to connect to ESP32', 'message': str(e)}), 500
+
+
+@app.route('/displayImage', methods=['POST'])
 def process_image():
     if 'image' not in request.files:
         return "No image provided", 400
@@ -59,7 +89,7 @@ def process_image():
     convert_h_to_bin(c_array_filename, bin_filename)
 
     # Automatically upload the .bin file to the ESP32
-    esp32_upload_url = 'http://172.20.10.2/upload'
+    esp32_upload_url = 'http://192.168.0.119/upload'
     files = {'file': open(bin_filename, 'rb')}
     response = requests.post(esp32_upload_url, files=files)
     
@@ -76,5 +106,5 @@ def process_image():
         'bin_path': bin_filename
     })
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(port=5000, debug=True)
