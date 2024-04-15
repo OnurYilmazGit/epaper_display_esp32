@@ -4,6 +4,7 @@ import numpy as np
 import os
 from datetime import datetime
 import requests 
+import io
 
 app = Flask(__name__)
 
@@ -46,26 +47,6 @@ def epaper_cross():
 
 @app.route('/displayText', methods=['POST'])
 def send_text_to_display():
-    """
-    print(request.headers)
-    print("Data:")
-    print(request.get_json())
-    
-    text_content = request.json.get('text')
-    if not text_content:
-        print(text_content)
-        return jsonify({'error': 'No text provided'}), 400
-
-    payload = {'plain': text_content}
-    response = requests.get(f'{esp32_base_url}/displayText', timeout=5)
-    
-    # Send the POST request to the ESP32 as form data
-    try:
-        response = requests.post(f'{esp32_base_url}/displayText', data=payload)
-        return jsonify({'status': 'Sent to ESP32', 'ESP32_response': response.text}), response.status_code
-    except requests.exceptions.RequestException as e:
-        return jsonify({'error': 'Failed to connect to ESP32', 'message': str(e)}), 500
-    """
     text_content = request.args.get('text')
     payload = {'plain': text_content}
     response = requests.get(f'{esp32_base_url}/displayText', timeout=5, data=payload)
@@ -78,59 +59,66 @@ def send_text_to_display():
 
 @app.route('/displayImage', methods=['POST'])
 def process_image():
-    if 'image' not in request.files:
-        return "No image provided", 400
+    image_url = request.args.get('url')
+    if not image_url:
+        return jsonify({'error': 'No URL provided'}), 400
 
-    file = request.files['image']
+    try:
+        response = requests.get(image_url)
+        response.raise_for_status()
+        image = Image.open(io.BytesIO(response.content))
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+    except requests.RequestException as e:
+        return jsonify({'error': 'Error fetching image', 'message': str(e)}), 500
+    except IOError as e:
+        return jsonify({'error': 'Error opening image', 'message': str(e)}), 500
 
-    # Process the image
-    image = Image.open(file.stream)
-    contrast_enhancer = ImageEnhance.Contrast(image)
-    image = contrast_enhancer.enhance(2.0)
+    image = ImageEnhance.Contrast(image).enhance(2.0)
     image = image.filter(ImageFilter.SHARPEN)
-    image = image.resize((200, 200))
+    image = image.resize((200, 200), Image.LANCZOS)
     image = image.convert('1')
 
-    # Generate a unique filename for saving
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    filename = f'processed_{timestamp}.jpg'
-    c_array_filename = f'IMG_0001.h'
-    bin_filename = f'IMG_0001.bin'
-
+    filename = f'processed_{timestamp}.png'
     image.save(filename)
 
-    # Convert the image to a C array
     image_array = np.array(image).astype(np.uint8)
     packed_image = np.packbits(image_array.flatten())
     hex_values = ['0X{:02X}'.format(byte) for byte in packed_image]
-    output_width = 16
-    hex_array_str = ',\n'.join(', '.join(hex_values[i:i+output_width]) for i in range(0, len(hex_values), output_width))
+    hex_array_str = ',\n'.join(', '.join(hex_values[i:i+16]) for i in range(0, len(hex_values), 16))
     c_array = f'const unsigned char IMAGE_BLACK[] PROGMEM = {{\n{hex_array_str}\n}};'
 
-    # Save the C array to a file
+    c_array_filename = f'IMG_0001.h'
     with open(c_array_filename, 'w') as f:
         f.write(c_array)
 
-    # Convert the .h file to a .bin file
+    bin_filename = f'IMG_{timestamp}.bin'
     convert_h_to_bin(c_array_filename, bin_filename)
 
-    # Automatically upload the .bin file to the ESP32
-    esp32_upload_url = 'http://192.168.0.119/upload'
-    files = {'file': open(bin_filename, 'rb')}
-    response = requests.post(esp32_upload_url, files=files)
-    
-    if response.status_code == 200:
-        print("Upload to ESP32 successful")
-    else:
-        print("Failed to upload to ESP32. Status code:", response.status_code)
-    
+    with open(bin_filename, 'rb') as bin_file:
+        files = {'file': bin_file}
+        try:
+            esp32_response = requests.post('http://131.159.6.138:9023/upload', files=files)
+            esp32_response.raise_for_status()
+        except requests.RequestException as e:
+            return jsonify({
+                'error': 'Failed to upload to ESP32',
+                'message': str(e),
+                'status_code': esp32_response.status_code if esp32_response else 'No response'
+            }), 500
 
     return jsonify({
-        'message': 'Image processed successfully',
-        'image_path': filename,
-        'c_array_path': c_array_filename,
-        'bin_path': bin_filename
-    })
+        'message': 'Image processed and uploaded successfully',
+        'paths': {
+            'processed_image': filename,
+            'c_array': c_array_filename,
+            'binary_file': bin_filename
+        },
+        'esp32_response': esp32_response.text
+    }), 200
+
+
 
 if __name__ == "__main__":
     app.run(host='::', port=5000, debug=True)
