@@ -18,8 +18,8 @@
 // GxEPD2 display class, set the correct width, height parameters for your display
 GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> display(GxEPD2_154_D67(EPD_CS, EPD_DC, EPD_RST, EPD_BUSY));
 
-const char *ssid = "FRITZ!Box 6660 Cable IH";
-const char *password = "39188923097050675231";
+const char *ssid = "Cocktail_Mixer";
+const char *password = "process_hubby";
 
 AsyncWebServer server(80);
 
@@ -118,6 +118,26 @@ void setup() {
     }
     Serial.print("Connected, IP address: ");
     Serial.println(WiFi.localIP());
+    
+    Serial.print("Connected, IP address: ");
+    Serial.println(WiFi.localIP());
+
+    // Start IPv6
+    WiFi.enableIpV6();
+    delay(500); 
+
+    uint8_t staticIPv6Address[] = {
+        0xFE, 0x80, 0x00, 0x00,  
+        0x00, 0x00, 0x00, 0x00,  
+        0x02, 0xAA, 0x1E, 0xFF,   
+        0xFE, 0x1E, 0x83, 0x29  
+    };
+
+    IPv6Address myIPv6Address(staticIPv6Address);
+    WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE, staticIPv6Address);
+    
+    Serial.print("Assigned Static IPv6 Address: ");
+    Serial.println(WiFi.localIPv6().toString());
 
     server.on("/clear", HTTP_GET, [](AsyncWebServerRequest *request) {
         clearDisplay();
@@ -134,6 +154,7 @@ void setup() {
             request->send(400, "text/plain", "Bad Request");
         }
     });
+
 
     // Display a black and white cross
     server.on("/cross", HTTP_GET, [](AsyncWebServerRequest *request) {
