@@ -108,7 +108,7 @@ Here are some examples of how to use `curl` to interact with the device:
   curl -X GET http://<ESP32_IP>/cross
   ```
 
-- **Upload a file**:
+- **Display an image**:
   ```
   curl -X POST -F "file=@/path/to/image" http://<ESP32_IP>/process-image
   ```
