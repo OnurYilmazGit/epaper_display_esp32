@@ -100,7 +100,7 @@ Here are some examples of how to use `curl` to interact with the device:
 
 - **Display text**:
   ```
-  curl -X POST -H "Content-Type: text/plain" -d "Hello, World!" http://<ESP32_IP>/displayText
+  curl -X POST -d "plain=Hello World.. I am the coolest display ever" http://<ESP32_IP>/displayText
   ```
 
 - **Display cross pattern**:
@@ -110,7 +110,7 @@ Here are some examples of how to use `curl` to interact with the device:
 
 - **Display an image**:
   ```
-  curl -X POST -F "file=@/path/to/image" http://<ESP32_IP>/process-image
+  curl -X POST -F "file=@/path/to/image" http://<ESP32_IP>/displayImage
   ```
 
 - **List files**:
