@@ -12,6 +12,7 @@ def convert_h_to_bin(input_file, output_file):
     with open(input_file, 'r') as file:
         content = file.read()
 
+    # Extract the array data
     array_data_str = content.split('{', 1)[1].split('}', 1)[0]
     array_data = [int(x, 16) for x in array_data_str.split(',') if x.strip().startswith('0X')]
 
@@ -19,35 +20,60 @@ def convert_h_to_bin(input_file, output_file):
     with open(output_file, 'wb') as bin_file:
         bin_file.write(bytearray(array_data))
 
-esp32_base_url = 'http://192.168.0.119'
+esp32_base_url = 'http://131.159.6.138:9023'
 
 @app.route('/clear', methods=['GET'])
 def clear_display():
     try:
-        response = requests.get('http://192.168.0.119/clear')
+        response = requests.get(f'{esp32_base_url}/cross', timeout=5)
         return jsonify({'status': 'Successs', 'message': 'Clear command sent to ESP32.'})
     except requests.exceptions.RequestException as e:
         return jsonify({'status': 'Error', 'message': str(e)}), 500
 
 @app.route('/cross', methods=['GET'])
 def epaper_cross():
-    response = requests.get(f'{esp32_base_url}/cross')
+    print(1)
+    try:
+        response = requests.get(f'{esp32_base_url}/cross', timeout=5)
+        print(2)
+    except requests.exceptions.RequestException as e:
+        print('Failed to connect to ESP32:', str(e))
+        return jsonify({'status': 'Error', 'message': str(e)}), 500
+
+    print(3)  # Confirm that this line executes
     return jsonify({'status': 'cross called', 'esp32_response': response.text}), 200
+
 
 @app.route('/displayText', methods=['POST'])
 def send_text_to_display():
+    """
+    print(request.headers)
+    print("Data:")
+    print(request.get_json())
+    
     text_content = request.json.get('text')
     if not text_content:
+        print(text_content)
         return jsonify({'error': 'No text provided'}), 400
 
-    # Prepare the form data payload for the ESP32
     payload = {'plain': text_content}
-
+    response = requests.get(f'{esp32_base_url}/displayText', timeout=5)
+    
+    # Send the POST request to the ESP32 as form data
     try:
         response = requests.post(f'{esp32_base_url}/displayText', data=payload)
         return jsonify({'status': 'Sent to ESP32', 'ESP32_response': response.text}), response.status_code
     except requests.exceptions.RequestException as e:
         return jsonify({'error': 'Failed to connect to ESP32', 'message': str(e)}), 500
+    """
+    text_content = request.args.get('text')
+    payload = {'plain': text_content}
+    response = requests.get(f'{esp32_base_url}/displayText', timeout=5, data=payload)
+    try:
+        response = requests.post(f'{esp32_base_url}/displayText', data=payload)
+        return jsonify({'status': 'Sent to ESP32', 'ESP32_response': response.text}), response.status_code
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': 'Failed to connect to ESP32', 'message': str(e)}), 500    
 
 
 @app.route('/displayImage', methods=['POST'])
@@ -107,4 +133,4 @@ def process_image():
     })
 
 if __name__ == "__main__":
-    app.run(port=5000, debug=True)
+    app.run(host='::', port=5000, debug=True)
