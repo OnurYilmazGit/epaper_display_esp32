@@ -100,7 +100,7 @@ Here are some examples of how to use `curl` to interact with the device:
 
 - **Display text**:
   ```
-  curl -X POST -d "plain=Hello World.. I am the coolest display ever" http://<ESP32_IP>/displayText
+  curl -X POST -H "Content-Type: application/json" -d '{"text":"Hello World"}' http://<ESP32_IP>/displayText
   ```
 
 - **Display cross pattern**:
