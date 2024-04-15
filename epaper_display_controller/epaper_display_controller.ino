@@ -118,26 +118,6 @@ void setup() {
     }
     Serial.print("Connected, IP address: ");
     Serial.println(WiFi.localIP());
-    
-    Serial.print("Connected, IP address: ");
-    Serial.println(WiFi.localIP());
-
-    // Start IPv6
-    WiFi.enableIpV6();
-    delay(500); 
-
-    uint8_t staticIPv6Address[] = {
-        0xFE, 0x80, 0x00, 0x00,  
-        0x00, 0x00, 0x00, 0x00,  
-        0x02, 0xAA, 0x1E, 0xFF,   
-        0xFE, 0x1E, 0x83, 0x29  
-    };
-
-    IPv6Address myIPv6Address(staticIPv6Address);
-    WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE, staticIPv6Address);
-    
-    Serial.print("Assigned Static IPv6 Address: ");
-    Serial.println(WiFi.localIPv6().toString());
 
     server.on("/clear", HTTP_GET, [](AsyncWebServerRequest *request) {
         clearDisplay();
