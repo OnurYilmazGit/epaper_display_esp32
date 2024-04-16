@@ -143,3 +143,7 @@ Below are examples of outputs that can be displayed on the e-paper screen using 
 
 - **Clear Screen Output (`/clear` endpoint):** This command clears the display, resulting in a blank screen.
   ![Clear Screen](output_images/cleaned.jpeg)
+
+- **Sample CPEE Screen Output 
+  ![CPEE Screen](output_images/sample-cpee.jpeg)
+  
