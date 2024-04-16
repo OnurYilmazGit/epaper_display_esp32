@@ -117,7 +117,7 @@ Here are some examples of how to use `curl` to interact with the device:
 
 - **Display an image**:
   ```
-  curl -X POST -F "file=@/path/to/image" http://<ESP32_IP>/displayImage
+  curl -X POST -H "Content-Type: application/json" -d '{"url": "your-url"}' http://127.0.0.1:5000/downloadImage
   ```
 
 - **List files**:
