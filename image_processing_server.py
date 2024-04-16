@@ -26,24 +26,20 @@ esp32_base_url = 'http://131.159.6.138:9023'
 @app.route('/clear', methods=['GET'])
 def clear_display():
     try:
-        response = requests.get(f'{esp32_base_url}/cross', timeout=5)
+        response = requests.get(f'{esp32_base_url}/clear', timeout=5)
         return jsonify({'status': 'Successs', 'message': 'Clear command sent to ESP32.'})
     except requests.exceptions.RequestException as e:
         return jsonify({'status': 'Error', 'message': str(e)}), 500
 
 @app.route('/cross', methods=['GET'])
 def epaper_cross():
-    print(1)
     try:
-        response = requests.get(f'{esp32_base_url}/cross', timeout=5)
-        print(2)
+        response = requests.get(f'{esp32_base_url}/cross', timeout=8)
     except requests.exceptions.RequestException as e:
         print('Failed to connect to ESP32:', str(e))
         return jsonify({'status': 'Error', 'message': str(e)}), 500
 
-    print(3)  # Confirm that this line executes
     return jsonify({'status': 'cross called', 'esp32_response': response.text}), 200
-
 
 @app.route('/displayText', methods=['POST'])
 def send_text_to_display():
@@ -56,16 +52,24 @@ def send_text_to_display():
     except requests.exceptions.RequestException as e:
         return jsonify({'error': 'Failed to connect to ESP32', 'message': str(e)}), 500    
 
+@app.before_request
+def load_json():
+    if request.method == 'POST':
+        try:
+            request.get_json(force=True)
+        except Exception:
+            pass
 
 @app.route('/displayImage', methods=['POST'])
 def process_image():
-    image_url = request.args.get('url')
-    if not image_url:
+    data = request.get_json(silent=True)
+    if not data or 'url' not in data:
         return jsonify({'error': 'No URL provided'}), 400
 
+    image_url = data['url']
     try:
         response = requests.get(image_url)
-        response.raise_for_status()
+        response.raise_for_status()  # Checks HTTP request for errors
         image = Image.open(io.BytesIO(response.content))
         if image.mode != 'RGB':
             image = image.convert('RGB')
@@ -77,7 +81,7 @@ def process_image():
     image = ImageEnhance.Contrast(image).enhance(2.0)
     image = image.filter(ImageFilter.SHARPEN)
     image = image.resize((200, 200), Image.LANCZOS)
-    image = image.convert('1')
+    image = image.convert('1')  # Convert image to black and white
 
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     filename = f'processed_{timestamp}.png'
@@ -93,7 +97,7 @@ def process_image():
     with open(c_array_filename, 'w') as f:
         f.write(c_array)
 
-    bin_filename = f'IMG_{timestamp}.bin'
+    bin_filename = f'IMG_0001.bin'
     convert_h_to_bin(c_array_filename, bin_filename)
 
     with open(bin_filename, 'rb') as bin_file:
@@ -118,6 +122,35 @@ def process_image():
         'esp32_response': esp32_response.text
     }), 200
 
+
+@app.route('/downloadImage', methods=['POST'])
+def download_image():
+    # Log request headers and body for debugging
+    print("Headers:", request.headers)
+    print("Body:", request.data)
+    print("Content-Type:", request.content_type)
+    
+    data = request.get_json(silent=True)
+    if not data or 'url' not in data:
+        return jsonify({'error': 'No URL provided or the body is not JSON'}), 400
+
+    image_url = data['url']
+    try:
+        response = requests.get(image_url)
+        response.raise_for_status()
+
+        filename = image_url.split('/')[-1]
+        save_path = os.path.join('/home/mangler/Projects/epaper_display_esp32', filename)
+
+        with open(save_path, 'wb') as f:
+            f.write(response.content)
+
+        return jsonify({'message': 'Image downloaded successfully', 'filename': filename}), 200
+
+    except requests.HTTPError as http_err:
+        return jsonify({'error': 'HTTP error occurred', 'details': str(http_err)}), 500
+    except Exception as err:
+        return jsonify({'error': 'An error occurred', 'details': str(err)}), 500
 
 
 if __name__ == "__main__":
