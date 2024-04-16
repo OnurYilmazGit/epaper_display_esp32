@@ -72,6 +72,13 @@ Connect the e-paper display to the ESP32 according to the pin definitions in the
 - `EPD_MOSI`: Pin 23
 - `EPD_CLK`: Pin 18
 
+
+Below are examples of GPIO connections that needs to be set. 
+  ![Text Display](output_images/gpio_connections/IMG_3519.jpeg)
+  ![Text Display](output_images/gpio_connections/IMG_3520.jpeg)
+  ![Text Display](output_images/gpio_connections/IMG_3521.jpeg)
+  ![Text Display](output_images/gpio_connections/IMG_3522.jpeg)
+
 ## 6. Software Configuration
 
 Upload the `epaper_display_controller.ino` file to your ESP32 using the Arduino IDE. This script initializes the Wi-Fi connection and starts a web server with multiple endpoints to control the e-paper display.
